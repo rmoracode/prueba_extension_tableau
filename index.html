@@ -4,29 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AJE Strategic Drilldown</title>
+    
     <script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api@master/lib/tableau.extensions.1.latest.js"></script>
+    
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Estilo rápido para el tooltip que usaremos más adelante */
-        .tooltip {
-            position: absolute;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 100;
-        }
-    </style>
 </head>
 <body>
-    <div id="loading-text" style="color: white; text-align: center; margin-top: 50px; font-family: sans-serif;">
-        <h2 style="margin-bottom: 10px;">AJE Strategic Drilldown</h2>
-        <p>Conectando con datos de AJE...</p>
+
+    <div id="loading-text">
+        <div class="spinner"></div>
+        <h2>AJE Strategic Drilldown</h2>
+        <p>Procesando jerarquías y métricas...</p>
     </div>
 
     <div id="tree-container"></div>
