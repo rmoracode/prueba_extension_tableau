@@ -1,44 +1,58 @@
-// Esperar a que Tableau se inicialice
 tableau.extensions.initializeAsync().then(function () {
-    console.log("Extensión de AJE inicializada correctamente");
-    
-    // Aquí definimos los datos de prueba de AJE para ver si el árbol dibuja
-    const dataAJE = [
-        { "Categoria": "Gaseosas", "Marca": "Big Cola", "Métrica": 4565304 },
-        { "Categoria": "Gaseosas", "Marca": "Volt", "Métrica": 2215741 },
-        { "Categoria": "Agua", "Marca": "Cielo", "Métrica": 1321911 }
-    ];
-
-    renderTree(dataAJE);
-}, function (err) {
-    console.error("Error al inicializar: " + err.toString());
+    console.log("Sistema AJE Preparado");
+    fetchTableauData();
 });
 
-function renderTree(data) {
-    const container = document.getElementById('tree-container');
-    if (!container) return;
+function fetchTableauData() {
+    // 1. Buscamos la hoja de trabajo en tu dashboard
+    const dashboard = tableau.extensions.dashboardContent.dashboard;
+    // Cambia "tree" por "prueba" si prefieres usar la otra hoja
+    const worksheet = dashboard.worksheets.find(ws => ws.name === "tree");
 
-    // Limpiamos el contenedor
-    container.innerHTML = "";
+    if (!worksheet) {
+        document.getElementById('tree-container').innerHTML = 
+            "<h2 style='color:white;'>Error: No encontré la hoja llamada 'tree'</h2>";
+        return;
+    }
 
-    // Creamos un título simple para verificar que el JS está corriendo
-    const title = document.createElement('h2');
-    title.style.color = "white";
-    title.style.textAlign = "center";
-    title.innerText = "Árbol Estratégico AJE - Vista Preliminar";
-    container.appendChild(title);
-
-    // Aquí iría tu lógica de D3.js para el árbol. 
-    // Por ahora, listamos las marcas para confirmar que ves algo en pantalla:
-    const list = document.createElement('ul');
-    list.style.color = "#00d4ff";
-    list.style.fontSize = "20px";
-    
-    data.forEach(item => {
-        const li = document.createElement('li');
-        li.innerText = item.Marca + ": " + item.Métrica.toLocaleString();
-        list.appendChild(li);
+    // 2. Obtenemos los datos completos (Full Data)
+    worksheet.getSummaryDataAsync().then(function (sumdata) {
+        const data = transformData(sumdata);
+        renderProfessionalTree(data);
     });
+}
+
+function transformData(sumdata) {
+    // Aquí convertimos las filas de Tableau en una estructura de árbol
+    // Asumiremos que tu primera columna es Categoría y la segunda Marca
+    let hierarchy = { name: "AJE Corporativo", children: [] };
+
+    sumdata.data.forEach(row => {
+        const catName = row[0].formattedValue; // Nivel 1
+        const brandName = row[1].formattedValue; // Nivel 2
+        const value = row[2].value; // Métrica (Venta/Cuota)
+
+        // Lógica simple de agrupación
+        let category = hierarchy.children.find(c => c.name === catName);
+        if (!category) {
+            category = { name: catName, children: [] };
+            hierarchy.children.push(category);
+        }
+        category.children.push({ name: brandName, value: value });
+    });
+
+    return hierarchy;
+}
+
+function renderProfessionalTree(data) {
+    const container = document.getElementById('tree-container');
+    container.innerHTML = "<h2 style='color:white; text-align:center;'>Árbol de Ventas AJE Activo</h2>";
     
-    container.appendChild(list);
+    // Aquí se integra la librería D3.js para dibujar los nodos.
+    // Por ahora, mostraremos la estructura detectada para validar:
+    const debugInfo = document.createElement('pre');
+    debugInfo.style.color = "#00ff88";
+    debugInfo.style.padding = "20px";
+    debugInfo.innerText = JSON.stringify(data, null, 2);
+    container.appendChild(debugInfo);
 }
